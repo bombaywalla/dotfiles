@@ -1,0 +1,16 @@
+# -*- mode: gitignore; -*-
+# for emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+TAGS
+.~*#
+# for java
+*.class
+*.jar
+# for temp files
+\#*
+.#*

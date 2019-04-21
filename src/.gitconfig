@@ -1,0 +1,10 @@
+[user]
+	name = Dorab Patel
+	email = dorabpatel@gmail.com
+[core]
+	editor = emacs
+[sendemail]
+	smtpuser = dorabpatel@gmail.com
+	smtpserver = smtp.gmail.com
+	smtpencryption = tls
+	smtpserverport = 587
