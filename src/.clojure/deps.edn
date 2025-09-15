@@ -1,11 +1,29 @@
+;;; clojure -Ttools list
+;;; clojure -Ttools install-latest
+;;; clojure -Ttools install-latest :tool antq
+;;; clojure -Ttools install-latest :lib com.github.liquidz/antq :as antq
+;;;
+;;; clojure -A:deps -Ttools help/dir
+;;; clojure -A:deps -Tantq help/doc
+;;; clojure -X:deps help/doc :ns help
+;;; clojure -X:deps:my-alias help/dir
+;;;
+;;; clojure -Sdeps '{:deps {com.syntereen/syntereen-templates {:local/root "/Users/dorab/Projects/syntereen-templates"}}}' -Tnew create :template com.syntereen.templates/app :name myusername/mynewproject
+;;;
+;;; neil new template ecorp/clj-template
+;;; neil new --local/root clj-template ecorp/clj-template ecorp/clj-project
 {
  :aliases {
            ;; Different clojure versions:
+
            :1.8 {:override-deps {org.clojure/clojure {:mvn/version "1.8.0"}}}
-           :1.10 {:override-deps {org.clojure/clojure {:mvn/version "1.10.1"}}}
-           :master {:override-deps {org.clojure/clojure {:mvn/version "1.11.0-master-SNAPSHOT"}}}
+           :1.11 {:override-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
+           :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.0"}}}
+           :master {:override-deps {org.clojure/clojure {:mvn/version "1.12.1-master-SNAPSHOT"}}}
 
            ;; testing and debugging tools:
+
+           :nop {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "RELEASE"}}}
            :test {:extra-paths ["test" "src/test/clojure"]
                   :extra-deps {org.clojure/test.check {:mvn/version "RELEASE"}}}
            ;; - see https://github.com/cognitect-labs/test-runner
@@ -16,100 +34,64 @@
                     :main-opts ["-m" "cognitect.test-runner"
                                 "-d" "test"
                                 "-d" "src/test/clojure"]}
-           ;; see https://github.com/jonase/eastwood#running-eastwood-in-a-repl
+           ;; Linter see https://github.com/jonase/eastwood#running-eastwood-in-a-repl
            :eastwood {:extra-deps {jonase/eastwood {:mvn/version "RELEASE"}}
                       ;; :extra-paths ["test" "src/test/clojure"]
                       ;; :main-opts ["-m" "eastwood.lint" "{:source-paths,[\"src\"],:test-paths,[\"test\"]}"]}
                       :main-opts ["-m" "eastwood.lint" {:source-paths ["src"]}]}
-
+           ;; clj-kondo linter
+           :clj-kondo {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
+                       :main-opts ["-m" "clj-kondo.main"]}
+           ;; Checks for warnings and errors - see https://github.com/athos/clj-check
+           ;; clj -M:check
+           :check {:extra-deps {io.github.athos/clj-check
+                                {:git/tag "0.1.0" :git/sha "0ca84df"}}
+                   :main-opts ["-m" "clj-check.check"]}
            ;; - see https://github.com/clojure-expectations/expectations
            ;; - run your expectations: clj -A:test:expect:runner
            :expect {:extra-deps {expectations/expectations {:mvn/version "RELEASE"}}}
-           ;; - see https://github.com/hugoduncan/criterium/
-           ;; - (require '[criterium.core :refer [bench]])
-           ;; - (bench (your-expression))
+           ;; Data visualization
+           :portal {djblue/portal {:mvn/version "RELEASE"}}
+           ;; Benchmarking
            :bench {:extra-deps {criterium/criterium {:mvn/version "RELEASE"}}}
+           ;; Memeory usage checking
            ;; - see https://github.com/clojure-goes-fast/clj-memory-meter
            ;; - (require '[clj-memory-meter.core :as mm])
            ;; - (mm/measure (your-expression))
            :measure {:extra-deps {com.clojure-goes-fast/clj-memory-meter {:mvn/version "RELEASE"}}}
-           ;; - see https://github.com/liquidz/antq
-           :outdated {:extra-deps {antq/antq {:mvn/version "RELEASE"}}
+
+           ;; Development tools
+
+           ;; If installed and used as a tool, it gives an (ignorable) exception if outdated deps exist
+           ;; Alternatively, use it without a tool.
+           :outdated {:deps {org.clojure/clojure {:mvn/version "1.12.0"}
+                             antq/antq {:mvn/version "RELEASE"}
+                             org.slf4j/slf4j-nop {:mvn/version "RELEASE"}}
                       :main-opts ["-m" "antq.core"]}
+           ;; Convert a lein project to deps.edn project.
+           :depify {:extra-deps {depify/depify {:git/url "https://github.com/hagmonk/depify"
+                                                :sha     "04329744872890711dbba8939a16e9987dd33bb3"}}
+                    :main-opts  ["-m" "depify.project"]}
            ;; To be filled in by the project deps.edn.
            ;; Called by cider when starting a nrepl.
            :dev {}
 
-           ;; For Java9+
+           ;; For clojure-mcp
+           :clojure-mcp {:deps {org.slf4j/slf4j-nop {:mvn/version "2.0.16"} ;; Required for stdio server
+                                com.bhauman/clojure-mcp {:git/url "https://github.com/bhauman/clojure-mcp.git"
+                                                         :git/tag "v0.1.8-alpha"
+                                                         :git/sha "457f197"}}
+                         :exec-fn clojure-mcp.main/start-mcp-server
+                         #_#_:exec-args {:port 7888}}
+           ;; for clojure-mcp
+           :nrepl {:deps {nrepl/nrepl {:mvn/version "RELEASE"}
+                          org.slf4j/slf4j-simple {:mvn/version "2.0.17"}}
+                   :paths ["src" "resources" "test"]
+                   :jvm-opts ["-Djdk.attach.allowAttachSelf"]
+                   ;; add --port nnnn for each project
+                   :main-opts ["-m" "nrepl.cmdline"] }
+
+           ;; For Java9+ to handle modules
            :java9 {:jvm-opts ["--add-opens" "java.base/jdk.internal.misc=ALL-UNNAMED"]}
 
-           ;; clj-kondo linter
-           :clj-kondo {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
-                       :main-opts ["-m" "clj-kondo.main"]}
-
-
-           ;; project creation from templates:
-           ;; - see https://github.com/seancorfield/clj-new
-           ;; - create an application project:
-           ;;   - clj -X:new create :template app :name myname/myapp
-           ;;   - cd myapp
-           ;;   - clj -M -m myname.myapp # run it!
-           ;;   - clj -M:test:runner # run the tests!
-           ;; - create a library project:
-           ;;   - clj -X:new create :template lib :name myname/my-cool-lib
-           ;;   - cd my-cool-lib
-           ;;   - clj -M:test:runner # run the tests!
-           :new {:extra-deps {seancorfield/clj-new {:mvn/version "RELEASE"}}
-                 :ns-default clj-new
-                 :exec-args {:template "lib"} ; default
-                 }
-           :new-app {:extra-deps {seancorfield/clj-new {:mvn/version "RELEASE"}}
-                     :exec-fn clj-new/create
-                     :exec-args {:template "app"}
-                     }
-           :new-lib {:extra-deps {seancorfield/clj-new {:mvn/version "RELEASE"}}
-                     :exec-fn clj-new/create
-                     :exec-args {:template "lib"}
-                     }
-
-           ;; uberjar building
-           ;; - see https://github.com/seancorfield/depstar for a minimalist approach:
-           ;;   - clj -X:uberjar :jar '"result.jar"'
-           ;; - to run it:
-           ;;   - java -cp result.jar clojure.main -m mymain.namespace
-           ;; - build a library JAR:
-           ;;   - clj -X:jar :jar '"result-lib.jar"'
-           :uberjar {:replace-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-                     :exec-fn hf.depstar/uberjar}
-           :jar {:replace-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-                 :exec-fn hf.depstar/jar}
-
-           ;; Stuff related to makeing a new release
-           ;; None of this works as well as I'd like.
-           :garamond {:main-opts ["-m" "garamond.main"]
-                      :extra-deps {com.workframe/garamond {:mvn/version "0.4.0"}}}
-           ;;
-           :metav {:extra-deps {metav/metav {:mvn/version "1.6.7"}}}
-           :artifact-name {:extra-deps {metav/metav {:mvn/version "1.6.7"}}
-                           :main-opts ["-m" "metav.display"]}
-           :release {:extra-deps {metav/metav {:mvn/version "1.6.7"}}
-                     :main-opts ["-m" "metav.release"]}
-           :spit     {:extra-deps {metav/metav {:mvn/version "1.6.7"}}
-                      :main-opts ["-m" "metav.spit"
-                                  "--output-dir" "src"
-                                  "--namespace" "yournamespace.meta"
-                                  "--formats" "clj"]}
-           ;; Deploy to clojars
-           ;; env CLOJARS_USERNAME=username CLOJARS_PASSWORD=password clj -X:deploy :artifact /path/to/jar
-           :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
-                    :exec-fn deps-deploy.deps-deploy/deploy
-                    :exec-args {:installer :remote :sign-releases? false}}
-           ;; Deploy to ~/.m2
-           ;; clj -X:install :artifact /path/to/jar
-           :install {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
-                    :exec-fn deps-deploy.deps-deploy/deploy
-                    :exec-args {:installer :local :sign-releases? false}}
-
-           :pne {:main-opts,["-e","(defmacro,$,[&,body],(list,'while,(list,'when-let,'[$_,(read-line)],(let,[v,(gensym)],(list,'let,(vector,v,(list*,'do,body)),(list,'println,v))),'$_)))"]}
-           }
- }
+           }}

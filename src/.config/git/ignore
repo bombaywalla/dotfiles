@@ -1,16 +1,12 @@
-# -*- mode: gitignore; -*-
-# for emacs
+#for emacs
 *~
+\#*
+.#*
 \#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-TAGS
-.~*#
 # for java
 *.class
 *.jar
-# for temp files
-\#*
-.#*
+# for clojure
+.cpcache/
+# for Mac OS
+.DS_Store
