@@ -49,14 +49,36 @@
 ;;; :init - run before loading package
 ;;; :config - run after loading package
 ;;; :bind - key bindings
+;;; :commands - manual autoloads for interactive functions
+;;; :autoloads - manual autoloads for non-interactive functions
 ;;; :defer t - load package lazily on autoloads
 ;;; :after foo - run this after foo is run
 ;;; :ensure t - make sure this pacakge is installed
+;;; :disabled - do not load this package
 
 
 (use-package emacs
   :init
   (put 'narrow-to-region 'disabled nil))
+
+(use-package exec-path-from-shell
+  :init
+  (setq exec-path-from-shell-variables
+        '("ANTHROPIC_API_KEY"
+          "GEMINI_API_KEY"
+          "DEEPSEEK_API_KEY"
+          "OPENAI_API_KEY"
+          "OLLAMA_API_BASE"
+          "OPENAI_API_URL"
+          "ANTHROPIC_API_URL"
+          "ECA_CONFIG"
+          "XDG_CONFIG_HOME"
+          "PATH"
+          "MANPATH"))
+  ;; For macOS and Linux GUI environments
+  ;; TODO: Does this also work for "emacs -nw"?
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
 
 (use-package company
   :ensure t
@@ -64,9 +86,11 @@
   (global-company-mode t))
 
 (use-package aidermacs
+  :disabled
   :bind (("C-c a" . aidermacs-transient-menu)))
 
 (use-package gptel
+  :disabled
   :commands (gptel gptel-send)
   :bind (("C-c <return>" . gptel-send))
   :config
@@ -79,6 +103,7 @@
 
 ;; other gptel backends
 (use-package gptel
+  :disabled
   :after gptel
   :config
   (add-hook 'gptel-post-response-functions 'gptel-end-of-response)
@@ -96,14 +121,16 @@
 
 
 (use-package mcp
+  :disabled
   :after gptel
   :config
   (require 'gptel-integrations)
   )
 
-;; only for lsp-mode.  See if we can remove it.  See lsp-enable-snippet.
+;; Only for lsp-mode.  See if we can remove it.  See lsp-enable-snippet.
+;; Also remove from selected-packages.
 (use-package yasnippet
-  :defer t)
+  )
 
 (use-package lsp-mode
   :defer t
@@ -111,13 +138,14 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   (setq read-process-output-max (* 1024 1024))
-  :hook ((clojure-mode . lsp))
-  :commands lsp)
+  :hook (clojure-mode . lsp-deferred)
+  :commands (lsp lsp-deferred))
 
 (use-package eca
   :defer t
   ;; :init
   ;; (setq eca-custom-command '("/Users/dorab/Projects/eca/eca" "server")) ; for testing
+  :commands (eca eca-restart)
   )
 
 (use-package adoc-mode
@@ -125,7 +153,7 @@
 
 ;; hooks
 
-(add-hook 'after-init-hook 'exec-path-from-shell-initialize)
+; (add-hook 'after-init-hook 'exec-path-from-shell-initialize)
 
 (add-hook 'text-mode-hook (lambda () (auto-fill-mode 1)))
 
@@ -227,17 +255,13 @@
    '(adoc-mode aidermacs auctex cider clojure-mode company conda dot-env
                eca exec-path-from-shell go-mode gptel lsp-mode magit
                markdown-mode mcp org sql-indent terraform-mode
-               yaml-mode))
+               yaml-mode yasnippet))
  '(safe-local-variable-values
    '((setq mcp-hub-servers
            `
            (("clj-proj" :command "/bin/sh" :args
              ,(concat "cd /Users/dorab/Projects/docq && "
                       "/opt/homebrew/bin/clojure -X:clojure-mcp"))))
-     (setq mcp-hub-servers
-           '(("clj-proj" :command "/bin/sh" :args
-              (concat "cd /Users/dorab/Projects/docq && "
-                      "clojure -X:clojure-mcp"))))
      (eval progn
            (make-variable-buffer-local
             'cider-jack-in-nrepl-middlewares)
