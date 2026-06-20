@@ -1,12 +1,40 @@
-#for emacs
+# -*- mode: gitignore; -*-
+# for emacs
 *~
 \#*
 .#*
 \#*\#
+.~*#
+/.emacs.desktop*
+*.elc
+auto-save-list
+tramp
+TAGS
+
 # for java
 *.class
 *.jar
+
 # for clojure
 .cpcache/
+/target/
+/classes/
+
+# for clojure tools
+.eastwood
+.nrepl-port
+/checkouts/
+
 # for Mac OS
 .DS_Store
+.DS_Store?
+._*
+.AppleDouble/
+.LSOverride
+Icon?
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# for Claude      
+**/.claude/settings.local.json
