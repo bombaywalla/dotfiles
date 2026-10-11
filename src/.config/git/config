@@ -1,13 +1,15 @@
+[include]
+	path = shared
 [user]
 	name = Dorab Patel
 	email = dorabpatel@gmail.com
 	signingkey = 0x1D5C5829DEBA372A
-[core]
-	editor = emacs -nw
+[includeIf "gitdir/i:~/Projects/syntereen/"]
+	path = config-syntereen
+[includeIf "gitdir/i:~/Projects/clients/"]
+	path = config-syntereen
 [sendemail]
 	smtpuser = dorabpatel@gmail.com
 	smtpserver = smtp.gmail.com
 	smtpencryption = tls
 	smtpserverport = 587
-[init]
-	defaultBranch = main

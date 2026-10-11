@@ -1,3 +1,8 @@
+;;; Emacs config  -*- lexical-binding: t -*-
+;;; Until emacs-app updates their libgccjit
+(require 'comp)
+(setq native-comp-driver-options (cons "-mmacosx-version-min=11" native-comp-driver-options))
+;;; Alternative work-around (setenv "MACOSX_DEPLOYMENT_TARGET" "27.0")
 ;; Added by Package.el.
 ;; This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
@@ -41,11 +46,56 @@
 ;; Load .env
 (load-env-file (expand-file-name "~/.env"))
 
+;;; Functions for running lazytest tests
+
+;; NOTE: This function will run the test when point is anywhere inside a test.
+;; BUT, cider--extract-test-var-at-point does not work with Lazytest tests.
+;; TODO: Fix this.
+;; (defun lazy-tests-run-var ()
+;;   (interactive)
+;;   (let* ((current-ns (cider-current-ns))
+;;          (var (cider--extract-test-var-at-point))
+;;          (var-ns (first var))
+;;          (var-name (second var)))
+;;     (cider-interactive-eval (format "(lazytest.repl/run-test-var #'%s/%s)" var-ns var-name)
+;;                             nil
+;;                             nil
+;;                             `(("ns" ,current-ns)))))
+
+
+(defun lazy-tests-run-var ()
+  (interactive)
+  (let* ((current-ns (cider-current-ns))
+         (var (cider-last-sexp)))
+    (cider-interactive-eval (format "(lazytest.repl/run-test-var #'%s)" var)
+                            nil
+                            nil
+                            `("ns" ,current-ns))))
+
+(defun lazy-tests-run-ns ()
+  (interactive)
+  (let* ((current-ns (cider-current-ns)))
+    (cider-interactive-eval (format "(lazytest.repl/run-tests '%s)" current-ns)
+                            nil
+                            nil
+                            `("ns" ,current-ns))))
+
+(defun lazy-tests-run-all ()
+  (interactive)
+  (let* ((current-ns (cider-current-ns)))
+    (cider-interactive-eval "(lazytest.repl/run-all-tests)"
+                            nil
+                            nil
+                            `("ns" ,current-ns))))
+
+;;; General settings
 
 ;; (setq debug-on-error t)
 ;; (toggle-debug-on-error)
 
 ;;; use-package
+
+;;; DO NOT USE :ensure, since this causes the latest to be installed always, which might conflict.
 ;;; :init - run before loading package
 ;;; :config - run after loading package
 ;;; :bind - key bindings
@@ -65,6 +115,7 @@
   :init
   (setq exec-path-from-shell-variables
         '("ANTHROPIC_API_KEY"
+          "GOOGLE_API_KEY"
           "GEMINI_API_KEY"
           "DEEPSEEK_API_KEY"
           "OPENAI_API_KEY"
@@ -80,52 +131,19 @@
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
+;; For gitignore mode
+(use-package git-modes
+  :ensure t)
+
+(use-package cider
+  :bind (("C-c C-t C-t" . lazy-tests-run-var )
+         ("C-c C-t C-n" . lazy-tests-run-ns ))
+  )
+
 (use-package company
   :ensure t
   :config
   (global-company-mode t))
-
-(use-package aidermacs
-  :disabled
-  :bind (("C-c a" . aidermacs-transient-menu)))
-
-(use-package gptel
-  :disabled
-  :commands (gptel gptel-send)
-  :bind (("C-c <return>" . gptel-send))
-  :config
-  (defvar gptel--gemini
-    (gptel-make-gemini "Gemini"
-      :key #'gptel-api-key-from-auth-source
-      :stream t))
-  (setq-default gptel-model 'gemini-2.5-flash-preview-05-20
-                gptel-backend gptel--gemini))
-
-;; other gptel backends
-(use-package gptel
-  :disabled
-  :after gptel
-  :config
-  (add-hook 'gptel-post-response-functions 'gptel-end-of-response)
-  (defvar gptel--anthropic
-    (gptel-make-anthropic "Claude"
-      :key #'gptel-api-key-from-auth-source
-      :stream t))
-  (defvar gptel--anthropic-reasoning
-    (gptel-make-anthropic "Claude-reasoning"
-      :key #'gptel-api-key-from-auth-source
-      :stream t
-      ;; :models '(claude-sonnet-4-20250514 claude-3-7-sonnet-20250219)
-      :request-params '(:thinking (:type "enabled" :budget_tokens 1024)
-                                  :max_tokens 2048))))
-
-
-(use-package mcp
-  :disabled
-  :after gptel
-  :config
-  (require 'gptel-integrations)
-  )
 
 ;; Only for lsp-mode.  See if we can remove it.  See lsp-enable-snippet.
 ;; Also remove from selected-packages.
@@ -144,7 +162,8 @@
 (use-package eca
   :defer t
   ;; :init
-  ;; (setq eca-custom-command '("/Users/dorab/Projects/eca/eca" "server")) ; for testing
+  ;; (setq eca-custom-command '("/Users/dorab/Projects/eca/eca" "server"))
+  ;; (setq eca-extra-args '("--log-level" "debug"))
   :commands (eca eca-restart)
   )
 
@@ -152,6 +171,10 @@
   :defer t)
 
 ;; hooks
+
+; supposedly to have cider use the LSP completion at point.
+; (add-hook 'cider-mode-hook (lambda () (remove-hook 'completion-at-point-functions #'cider-complete-at-point))))
+
 
 ; (add-hook 'after-init-hook 'exec-path-from-shell-initialize)
 
@@ -181,6 +204,7 @@
 (org-crypt-use-before-save-magic)	;encrypt on save
 (setq org-tags-exclude-from-inheritance (quote ("crypt")))
 (setq org-crypt-key nil)		;use symmetric encryption
+(setq org-duration-format 'h:mm)
 
 ;; Fix indentation of some common macros
 ;;  (define-clojure-indent
@@ -233,6 +257,7 @@
  '(aidermacs-editor-model "aider-default-model")
  '(aidermacs-weak-model nil)
  '(cider-clojure-cli-aliases ":dev:test:portal")
+ '(cider-enable-nrepl-jvmti-agent t)
  '(cider-invert-insert-eval-p t)
  '(cider-preferred-build-tool 'clojure-cli)
  '(cider-repl-use-content-types t)
@@ -249,25 +274,16 @@
  '(package-archives
    '(("gnu" . "https://elpa.gnu.org/packages/")
      ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+     ("melpa-stable" . "https://stable.melpa.org/packages/")
      ("melpa" . "https://melpa.org/packages/")))
  '(package-pinned-packages '((nil . "") (cider . "melpa")))
  '(package-selected-packages
-   '(adoc-mode aidermacs auctex cider clojure-mode company conda dot-env
-               eca exec-path-from-shell go-mode gptel lsp-mode magit
-               markdown-mode mcp org sql-indent terraform-mode
-               yaml-mode yasnippet))
+   '(adoc-mode auctex cider clojure-mode company conda dot-env eca
+               exec-path-from-shell git-modes go-mode lsp-mode magit
+               markdown-mode org sql-indent terraform-mode yaml-mode
+               yasnippet))
  '(safe-local-variable-values
-   '((setq mcp-hub-servers
-           `
-           (("clj-proj" :command "/bin/sh" :args
-             ,(concat "cd /Users/dorab/Projects/docq && "
-                      "/opt/homebrew/bin/clojure -X:clojure-mcp"))))
-     (eval progn
-           (make-variable-buffer-local
-            'cider-jack-in-nrepl-middlewares)
-           (add-to-list 'cider-jack-in-nrepl-middlewares
-                        "shadow.cljs.devtools.server.nrepl/middleware"))
-     (cider-default-cljs-repl . custom)
+   '((cider-default-cljs-repl . custom)
      (cider-preferred-build-tool . clojure-cli)
      (cider-clojure-cli-aliases . "-M:dev")
      (cider-shadow-cljs-default-options . "app")
@@ -287,3 +303,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;;; Settings for this machine only.  Not in the dotfiles repository.
+(load (expand-file-name "local.el" user-emacs-directory) t)

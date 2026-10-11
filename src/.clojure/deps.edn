@@ -8,10 +8,13 @@
 ;;; clojure -X:deps help/doc :ns help
 ;;; clojure -X:deps:my-alias help/dir
 ;;;
-;;; clojure -Sdeps '{:deps {com.syntereen/syntereen-templates {:local/root "/Users/dorab/Projects/syntereen-templates"}}}' -Tnew create :template com.syntereen.templates/app :name myusername/mynewproject
+;;; clojure -Tnew template :name com.syntereen/syntereen/syntereen-templates :test-runner :lazytest :build :bb
+;;; clojure -Sdeps '{:deps {com.syntereen/syntereen/syntereen-templates {:local/root "/Users/dorab/Projects/syntereen/syntereen-templates"}}}' -Tnew create :template com.syntereen.templates/app :name myusername/mynewproject
+;;; clojure -Sdeps '{:deps {com.syntereen/syntereen/syntereen-templates {:local/root "/Users/dorab/Projects/syntereen/syntereen-templates"}}}' -Tnew create :template com.syntereen.templates/app :test-runner :lazytest :name myusername/mynewproject
 ;;;
-;;; neil new template ecorp/clj-template
+;;; neil new template ecorp/clj-template :build :bb :test-runner :lazytest
 ;;; neil new --local/root clj-template ecorp/clj-template ecorp/clj-project
+;;; neil new --local/root "/Users/dorab/Projects/syntereen/syntereen-templates" com.syntereen.templates/app myusername/mynewproject
 {
  :aliases {
            ;; Different clojure versions:
@@ -79,8 +82,8 @@
            ;; For clojure-mcp
            :clojure-mcp {:deps {org.slf4j/slf4j-nop {:mvn/version "2.0.16"} ;; Required for stdio server
                                 com.bhauman/clojure-mcp {:git/url "https://github.com/bhauman/clojure-mcp.git"
-                                                         :git/tag "v0.1.8-alpha"
-                                                         :git/sha "457f197"}}
+                                                         :git/tag "v0.1.12"
+                                                         :git/sha "79b9d5a"}}
                          :exec-fn clojure-mcp.main/start-mcp-server
                          #_#_:exec-args {:port 7888}}
            ;; for clojure-mcp
