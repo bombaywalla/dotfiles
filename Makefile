@@ -2,28 +2,39 @@
 #
 # The files are copies, not links.  Drift is found with `make diff`.
 #
-#   make diff      Show how the home files differ from the repository.
-#   make collect   Copy the home files into the repository.  Then use
-#                  `git diff` to review, and commit or discard.
-#   make install   Copy the repository files into the home directory.
-#                  Stops if a home file differs; FORCE=1 overwrites it.
+#   make diff            Show how the home files differ from the repository.
+#   make collect         Copy the home files into the repository.  Then use
+#                        `git diff` to review, and commit or discard.
+#   make install         Copy the repository files into the home directory.
+#                        Stops if a home file differs; FORCE=1 overwrites it.
+#   make diff-shared     Like diff, for the shared files only.
+#   make install-shared  Like install, for the shared files only.  Use this
+#                        on a machine other than the primary one.
 #
 # DEST sets the home directory, for example `make install DEST=/tmp/t`.
 
 DEST ?= $(HOME)
 SRC  := src
 
-# Paths relative to $(SRC) and $(DEST).  Add a file here to manage it.
-FILES := \
+# Paths relative to $(SRC) and $(DEST).  Add a file to SHARED or PRIMARY.
+
+# Files any machine can take.  They hold no identity.
+SHARED := \
 	.emacs.d/init.el \
 	.tmux.conf \
 	.clojure/deps.edn \
 	.config/git/ignore \
-	.config/git/shared \
+	.config/git/shared
+
+# Files for the primary machine: the shared files and its identity.
+PRIMARY := \
+	$(SHARED) \
 	.config/git/config \
 	.config/git/config-syntereen
 
-.PHONY: help diff collect install
+FILES := $(PRIMARY)
+
+.PHONY: help diff collect install diff-shared install-shared
 
 help:
 	@sed -n 's/^#   //p' $(MAKEFILE_LIST)
@@ -61,3 +72,9 @@ install:
 	  fi; \
 	done; \
 	exit $$status
+
+diff-shared:
+	@$(MAKE) --no-print-directory diff FILES='$(SHARED)'
+
+install-shared:
+	@$(MAKE) --no-print-directory install FILES='$(SHARED)'
