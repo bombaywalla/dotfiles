@@ -25,6 +25,8 @@ A file in `src/` sits at the same path as it does in the home directory.
 
 Each zsh file sources a `.local` file of the same name last, if it
 exists: `~/.zshenv.local`, `~/.zprofile.local` and `~/.zshrc.local`.
+`.tmux.conf` loads `~/.tmux.conf.local` the same way, for example for
+a status color that shows which machine or account a session is on.
 Those files hold a machine's private lines and are in no repository.
 A line that only depends on what a machine has installed goes in the
 shared file, behind a check that its target exists.
