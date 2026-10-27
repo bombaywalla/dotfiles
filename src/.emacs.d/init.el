@@ -26,26 +26,6 @@
 
 ;; Currently selected packages are in the var package-selected-packages
 
-;; Load environment variables from a .env-style file
-(defun load-env-file (file)
-  "Read a .env file and set environment variables."
-  (interactive "fEnv file: ")
-  (when (file-exists-p file)
-    (with-temp-buffer
-      (insert-file-contents file)
-      (goto-char (point-min))
-      (while (not (eobp))
-        (let ((line (buffer-substring-no-properties
-                     (line-beginning-position)
-                     (line-end-position))))
-          (when (string-match "^\\([^=]+\\)=\\(.*\\)$" line)
-            (setenv (match-string 1 line) (match-string 2 line))))
-        (forward-line 1)))))
-
-;; TODO: use the dot-env package for parsing.  Copy the dot-env to the env.
-;; Load .env
-(load-env-file (expand-file-name "~/.env"))
-
 ;;; Functions for running lazytest tests
 
 ;; NOTE: This function will run the test when point is anywhere inside a test.
@@ -119,13 +99,17 @@
           "GEMINI_API_KEY"
           "DEEPSEEK_API_KEY"
           "OPENAI_API_KEY"
+          "OMLX_API_KEY"
+          "GITLAB_HOST"
+          "GITLAB_TOKEN"
           "OLLAMA_API_BASE"
           "OPENAI_API_URL"
           "ANTHROPIC_API_URL"
           "ECA_CONFIG"
           "XDG_CONFIG_HOME"
           "PATH"
-          "MANPATH"))
+          "MANPATH"
+          "DOTNET_ROOT"))
   ;; For macOS and Linux GUI environments
   ;; TODO: Does this also work for "emacs -nw"?
   (when (memq window-system '(mac ns x))
