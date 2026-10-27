@@ -20,6 +20,9 @@ SRC  := src
 
 # Files any machine can take.  They hold no identity.
 SHARED := \
+	.zshenv \
+	.zprofile \
+	.zshrc \
 	.emacs.d/init.el \
 	.tmux.conf \
 	.clojure/deps.edn \

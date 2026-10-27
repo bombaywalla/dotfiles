@@ -10,6 +10,9 @@ holds a password, a token or a private key.
 
 | File in `src/` | Configures | Shared |
 | --- | --- | --- |
+| `.zshenv` | zsh, every shell: Homebrew first on `PATH` | Yes |
+| `.zprofile` | zsh, login shells: Homebrew, Python, libpq, `~/.local/bin`, `DOTNET_ROOT` | Yes |
+| `.zshrc` | zsh, interactive shells: aliases | Yes |
 | `.emacs.d/init.el` | Emacs | Yes |
 | `.tmux.conf` | tmux | Yes |
 | `.clojure/deps.edn` | Clojure CLI aliases | Yes |
@@ -19,6 +22,17 @@ holds a password, a token or a private key.
 | `.config/git/config-syntereen` | git identity for Syntereen and client repositories | No |
 
 A file in `src/` sits at the same path as it does in the home directory.
+
+Each zsh file sources a `.local` file of the same name last, if it
+exists: `~/.zshenv.local`, `~/.zprofile.local` and `~/.zshrc.local`.
+Those files hold a machine's private lines and are in no repository.
+A line that only depends on what a machine has installed goes in the
+shared file, behind a check that its target exists.
+
+Secrets, such as API keys, stay out of every zsh file.  On the primary
+machine, they are in `~/.envsecrets` as `KEY=value` lines, and
+`~/.zshrc.local` exports them.  Emacs takes them from the shell through
+`exec-path-from-shell`.
 
 Shared files hold no identity, so any machine can take them.  The
 `Makefile` lists them in `SHARED`.  `PRIMARY` lists the shared files
